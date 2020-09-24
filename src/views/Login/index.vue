@@ -232,7 +232,10 @@ export default {
             }
             Login(requestData).then(res => {
                 root.$message.success(res.data.message)
-            })
+                root.$router.push({name:"Console"})
+            }).catch(error => {
+                clearCountDown()
+            }) 
         })
         /** 注册 */
         const register = (() => {
