@@ -1,11 +1,9 @@
 <template>
-    <div>
-        控制台
-    </div>
+    <div>用户管理</div>
 </template>
 <script>
 export default {
-    name: "console"
+    name: "userIndex"
 }
 </script>
 <style lang="scss" scoped>

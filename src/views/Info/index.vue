@@ -1,12 +1,11 @@
 <template>
-    <div>
-        控制台
-    </div>
+    <div>信息列表</div>
 </template>
 <script>
 export default {
-    name: "console"
+    name: "infoIndex"
 }
 </script>
 <style lang="scss" scoped>
+
 </style>

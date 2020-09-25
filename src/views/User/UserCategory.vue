@@ -1,11 +1,9 @@
 <template>
-    <div>
-        控制台
-    </div>
+    <div>用户分类</div>
 </template>
 <script>
 export default {
-    name: "console"
+    name: "userCategory"
 }
 </script>
 <style lang="scss" scoped>
