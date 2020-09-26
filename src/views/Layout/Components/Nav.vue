@@ -3,9 +3,7 @@
         <h1 class="logo"><img src="../../../assets/logo.png" alt=""></h1>
         <el-menu
             default-active="1-4-1" 
-            class="el-menu-vertical-demo" 
-            @open="handleOpen" 
-            @close="handleClose" 
+            class="el-menu-vertical-demo"
             :collapse="isCollapse"
             background-color="transparent"
             text-color="#fff"
@@ -31,25 +29,19 @@
     </div>
 </template>
 <script>
-import { reactive, ref } from '@vue/composition-api'
+import { computed, reactive, ref } from '@vue/composition-api';
 export default {
     name: "navMenu",
     setup(propo, {root}){
         //data
-        const isCollapse= ref(false);
-        const routes = reactive(root.$router.options.routes)
+        const routes = reactive(root.$router.options.routes);
+        //computed
+        const isCollapse = computed( () => root.$store.state.isCollapse )
         //methods
-        const handleOpen = (key, keyPath) => {
-            console.log(key, keyPath);
-        }
-        const handleClose = (key, keyPath) => {
-            console.log(key, keyPath);
-        }
+        
         return {
             isCollapse,
             routes,
-            handleOpen,
-            handleClose
         }
     }
 }
@@ -70,9 +62,17 @@ export default {
     width: $navMenu;
     height: 100vh;
     background-color: #344a5f;
+    @include webkit(transition , all .3s ease 0s);
     svg {
         font-size: 20px;
         margin-right: 10px;
     }
+}
+.open {
+  #nav-wrap { width: $navMenu; }
+}
+.close {
+  #nav-wrap { width: $navMenuMin; }
+  .logo img { width: 60%; }
 }
 </style>
