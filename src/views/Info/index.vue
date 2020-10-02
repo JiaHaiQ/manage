@@ -138,6 +138,9 @@
             @click="editInfo(scope.row.id)"
             >编辑</el-button
           >
+          <el-button type="primary" icon="el-icon-edit" size="mini"
+            >编辑详情</el-button
+          >
           <el-button
             type="danger"
             icon="el-icon-delete"
