@@ -1,18 +1,18 @@
 <template>
   <el-dialog
-    title="新增"
+    title="修改"
     width="580px"
-    :visible.sync="data.dialogAddFlag"
-    @opened="openDialogAdd"
-    @close="closeDialogAdd"
+    :visible.sync="data.dialogEditFlag"
+    @opened="openDialogEdit"
+    @close="closeDialogEdit"
   >
-    <el-form :model="data.form" ref="addForm">
+    <el-form :model="data.editForm" ref="editForm">
       <el-form-item
         label="类型："
         :label-width="data.formLabelWidth"
         prop="categoryId"
       >
-        <el-select v-model="data.form.categoryId" placeholder="请选择">
+        <el-select v-model="data.editForm.categoryId" placeholder="请选择">
           <el-option
             v-for="item in data.categoryOptions"
             :key="item.id"
@@ -27,7 +27,7 @@
         prop="title"
       >
         <el-input
-          v-model="data.form.title"
+          v-model="data.editForm.title"
           placeholder="请输入标题"
           clearable
         />
@@ -39,7 +39,7 @@
       >
         <el-input
           type="textarea"
-          v-model="data.form.content"
+          v-model="data.editForm.content"
           placeholder="请输入内容"
           clearable
         />
@@ -49,24 +49,24 @@
       <el-button
         type="danger"
         icon="el-icon-circle-close"
-        @click="closeDialogAdd"
+        @click="closeDialogEdit"
         >取 消</el-button
       >
       <el-button
         type="success"
         icon="el-icon-circle-check"
         :loading="data.submitLoading"
-        @click="submitAdd"
+        @click="submitEdit"
         >确 定</el-button
       >
     </div>
   </el-dialog>
 </template>
 <script>
-import { reactive, ref, watchEffect } from "@vue/composition-api";
-import { AddInfo } from "api/info";
+import { reactive, ref, watchEffect, watch } from "@vue/composition-api";
+import { EdidInfo, GetList } from "api/info";
 export default {
-  name: "dialogAdd",
+  name: "dialogEdit",
   props: {
     flag: {
       type: Boolean,
@@ -75,56 +75,75 @@ export default {
     category: {
       type: Array,
       default: () => []
+    },
+    editRowId: {
+      type: String,
+      default: ""
     }
   },
   setup(props, { root, emit, refs }) {
     // data
     const data = reactive({
-      dialogAddFlag: false,
+      dialogEditFlag: false,
       submitLoading: false,
       formLabelWidth: "70px",
       categoryOptions: [],
-      form: {
+      editForm: {
+        id: "",
         categoryId: "",
         title: "",
         content: ""
       }
     });
     // watch
-    watchEffect(() => (data.dialogAddFlag = props.flag));
+    watchEffect(() => (data.dialogEditFlag = props.flag));
     // methods
     /** 打开弹窗 */
-    const openDialogAdd = () => {
+    const openDialogEdit = () => {
       data.categoryOptions = props.category;
+      getProps();
     };
     /** 关闭弹窗 */
-    const closeDialogAdd = () => {
-      data.dialogAddFlag = false;
+    const closeDialogEdit = () => {
+      data.dialogEditFlag = false;
       // 重置form
-      refs.addForm.resetFields();
+      refs.editForm.resetFields();
       emit("update:flag", false);
     };
-    /** 提交添加 */
-    const submitAdd = () => {
-      if (!data.form.categoryId) {
+    const getProps = () => {
+      data.editForm.id = props.editRowId;
+      let request = {
+        id: data.editForm.id,
+        pageNumber: 1,
+        pageSize: 10
+      };
+      GetList(request).then(res => {
+        let resData = res.data.data.data[0];
+        data.editForm.categoryId = resData.categoryId;
+        data.editForm.title = resData.title;
+        data.editForm.content = resData.content;
+      });
+    };
+    /** 提交修改 */
+    const submitEdit = () => {
+      if (!data.editForm.categoryId) {
         root.$message.error("请选择类型！");
         return false;
       }
-      if (!data.form.title) {
+      if (!data.editForm.title) {
         root.$message.error("请输入标题！");
         return false;
       }
-      if (!data.form.content) {
+      if (!data.editForm.content) {
         root.$message.error("请输入内容！");
         return false;
       }
       data.submitLoading = true;
-      AddInfo(data.form)
+      EdidInfo(data.editForm)
         .then(res => {
           root.$message.success(res.data.message);
           data.submitLoading = false;
           emit("getListEmit");
-          closeDialogAdd();
         })
         .catch(error => {
           data.submitLoading = false;
@@ -134,9 +153,9 @@ export default {
       // reactive
       data,
       // methods
-      openDialogAdd,
-      closeDialogAdd,
-      submitAdd
+      openDialogEdit,
+      closeDialogEdit,
+      submitEdit
     };
   }
 };

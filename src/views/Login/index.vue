@@ -96,16 +96,9 @@
   </div>
 </template>
 <script>
-import sha1 from "js-sha1";
-import { Message } from "element-ui";
+import { reactive, ref, onMounted } from "@vue/composition-api";
 import { GetSms, Register } from "api/login";
-import {
-  reactive,
-  ref,
-  onMounted,
-  toggleMenu,
-  submitForm
-} from "@vue/composition-api";
+import sha1 from "js-sha1";
 import {
   stripscript,
   validataEmail,
@@ -213,7 +206,7 @@ export default {
       refs.loginForm.resetFields();
     };
     /** 更新按钮状态 */
-    const updataButtonStatus = parmas => {
+    const updateButtonStatus = parmas => {
       codeButtonStatus.status = parmas.status;
       codeButtonStatus.type = parmas.type || "success";
       codeButtonStatus.text = parmas.text;
@@ -228,7 +221,7 @@ export default {
         root.$message.error("邮箱格式有误，请重新输入");
         return false;
       }
-      updataButtonStatus({
+      updateButtonStatus({
         status: true,
         text: "发送中"
       });
@@ -245,6 +238,7 @@ export default {
     };
     /** 登录 */
     const login = () => {
+      loginButtonStatus.value = true;
       let requestData = {
         username: ruleForm.username,
         password: sha1(ruleForm.password),
@@ -253,6 +247,7 @@ export default {
       root.$store
         .dispatch("app/login", requestData)
         .then(res => {
+          loginButtonStatus.value = false;
           root.$message.success(res.data.message);
           root.$router.push({ name: "Console" });
         })
@@ -297,7 +292,7 @@ export default {
         }
         if (time == 0) {
           clearInterval(timer.value);
-          updataButtonStatus({
+          updateButtonStatus({
             status: false,
             text: "再次获取"
           });
@@ -306,7 +301,7 @@ export default {
     };
     /** 清除倒计时 */
     const clearCountDown = () => {
-      updataButtonStatus({
+      updateButtonStatus({
         status: false,
         text: "获取验证码"
       });

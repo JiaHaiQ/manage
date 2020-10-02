@@ -8,7 +8,7 @@
         <img src="../../../assets/image/userInfo.jpg" alt="" />
         {{ userName }}
       </div>
-      <div class="pull-left heaber-icon" @click="logout">
+      <div class="pull-left heaber-icon" @click="logoutConfirm">
         <svg-icon iconClass="signOut" className="signOut" />
       </div>
     </div>
@@ -16,18 +16,29 @@
 </template>
 <script>
 import { computed } from "@vue/composition-api";
+import { global } from "utils/global";
 export default {
   name: "heaber",
   setup(props, { root }) {
+    const { confirm } = global(); //MessageBox提示
     // data
-    const onMenuState = () => {
-      root.$store.commit("app/SET_COLLAPSE");
-    };
     //computed
     const onMenuSvg = computed(() =>
       root.$store.state.app.isCollapse ? "menu-on" : "menu-off"
     );
     const userName = computed(() => root.$store.state.app.username);
+    // methods
+    const onMenuState = () => {
+      root.$store.commit("app/SET_COLLAPSE");
+    };
+    /** logout MessageBox */
+    const logoutConfirm = () => {
+      confirm({
+        content: "确认退出？",
+        tip: "警告",
+        fn: logout
+      });
+    };
     // 登出
     const logout = () => {
       root.$store.dispatch("app/logout").then(res => {
@@ -40,10 +51,11 @@ export default {
       });
     };
     return {
-      onMenuState,
       userName,
       onMenuSvg,
-      logout
+      // methods
+      onMenuState,
+      logoutConfirm
     };
   }
 };

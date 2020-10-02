@@ -6,11 +6,11 @@ const whiteRouter = ["/login"];
 
 router.beforeEach((to, from, next) => {
   if (getToKen()) {
-    if (to.path === '/login') {
+    if (to.path === "/login") {
       removeToKen();
       removeUserName();
-      store.commit("app/SET_TOKEN", '');
-      store.commit("app/SET_USERNAME", '');
+      store.commit("app/SET_TOKEN", "");
+      store.commit("app/SET_USERNAME", "");
       next();
     } else {
       next();

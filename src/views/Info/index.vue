@@ -9,15 +9,15 @@
             <el-select
               style="width: 100%;"
               size="small"
-              v-model="category_value"
+              v-model="searchData.categoryId"
               placeholder="请选择"
               clearable
             >
               <el-option
-                v-for="item in options"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
+                v-for="item in options.category"
+                :key="item.id"
+                :label="item.category_name"
+                :value="item.id"
               >
               </el-option>
             </el-select>
@@ -31,9 +31,11 @@
             <el-date-picker
               style="width: 100%;"
               size="small"
-              v-model="date_value"
+              v-model="allData.dateValue"
               type="datetimerange"
               align="right"
+              format="yyyy-MM-dd"
+              value-format="yyyy-MM-dd HH:mm:ss"
               start-placeholder="开始日期"
               range-separator="至"
               end-placeholder="结束日期"
@@ -51,12 +53,12 @@
             <el-select
               style="width: 100%;"
               size="small"
-              v-model="search_key"
+              v-model="allData.keyWork.key"
               placeholder="请选择"
-              clearable
+              @change="keyWorkChange"
             >
               <el-option
-                v-for="item in search_options"
+                v-for="item in options.searchOptions"
                 :key="item.value"
                 :label="item.label"
                 :value="item.value"
@@ -70,51 +72,78 @@
         <el-input
           style="width: 100%;"
           size="small"
-          v-model="search_keyWord"
+          v-model="allData.keyWork.value"
           placeholder="请输入内容"
           clearable
         ></el-input>
       </el-col>
       <el-col :span="2">
         <el-button
-          style="width: 100%;"
+          class="searchBtn"
           size="small"
           type="primary"
           icon="el-icon-search"
+          @click="submitSearch"
           >搜索</el-button
         >
       </el-col>
       <el-col :span="1">&nbsp;</el-col>
       <el-col :span="2">
         <el-button
-          class="pull-right"
+          class="pull-right searchBtn"
           type="success"
           icon="el-icon-circle-plus-outline"
           size="small"
-          @click="dialog_add = true"
+          @click="allData.dialogAdd = true"
           >添加</el-button
         >
       </el-col>
     </el-row>
     <!-- table start -->
     <div class="black-space-30"></div>
-    <el-table :data="table_data" border style="width: 100%">
+    <el-table
+      :data="allData.tableData"
+      border
+      style="width: 100%"
+      height="460"
+      v-loading="allData.tableLoading"
+      element-loading-text="拼命加载中"
+      element-loading-spinner="el-icon-loading"
+      element-loading-background="rgba(0, 0, 0, .5)"
+      @selection-change="handleSelectionChange"
+    >
       <el-table-column type="selection" width="45"> </el-table-column>
-      <el-table-column prop="title" label="标题" width="530"> </el-table-column>
-      <el-table-column prop="type" label="类型" width="130"> </el-table-column>
-      <el-table-column prop="date" label="日期" width="220"> </el-table-column>
-      <el-table-column prop="user" label="管理员" width="120">
+      <el-table-column prop="title" label="标题" width=""> </el-table-column>
+      <el-table-column
+        prop="categoryId"
+        label="分类"
+        width="150"
+        :formatter="toCategory"
+      >
       </el-table-column>
-      <el-table-column label="操作">
+      <el-table-column
+        prop="createDate"
+        label="日期时间"
+        width="200"
+        :formatter="toDate"
+      >
+      </el-table-column>
+      <!-- <el-table-column prop="user" label="管理员" width="120"></el-table-column> -->
+      <el-table-column label="操作" width="220">
         <template slot-scope="scope">
-          <el-button type="primary" icon="el-icon-edit" size="mini"
+          <el-button
+            type="primary"
+            icon="el-icon-edit"
+            size="mini"
+            @click="editInfo(scope.row.id)"
             >编辑</el-button
           >
           <el-button
             type="danger"
             icon="el-icon-delete"
             size="mini"
-            @click="deleteItem"
+            :loading="allData.deleteBtnLoading"
+            @click="deleteItem(scope.row.id)"
             >删除</el-button
           >
         </template>
@@ -128,6 +157,7 @@
           type="danger"
           icon="el-icon-delete"
           size="small"
+          :loading="allData.deleteBtnLoading"
           @click="deleteAll"
           >批量删除</el-button
         >
@@ -140,104 +170,209 @@
           @current-change="handleCurrentChange"
           :page-sizes="[10, 20, 50, 100]"
           layout="total, sizes, prev, pager, next, jumper"
-          :total="total"
+          :total="allData.total"
         >
         </el-pagination>
       </el-col>
     </el-row>
     <!-- 新增 -->
-    <DialogAdd :flag.sync="dialog_add" />
+    <DialogAdd
+      :flag.sync="allData.dialogAdd"
+      :category="options.category"
+      @getListEmit="getList"
+    />
+    <!-- 编辑 -->
+    <DialogEdit
+      :flag.sync="allData.dialogEdit"
+      :category="options.category"
+      :editRowId="allData.editRowId"
+      @getListEmit="getList"
+    />
     <!-- end -->
   </div>
 </template>
 <script>
-import { reactive, ref } from "@vue/composition-api";
+import { ref, reactive, onMounted } from "@vue/composition-api";
 import DialogAdd from "./dialog/add";
+import DialogEdit from "./dialog/edit";
+import { GetList, DeleteInfo } from "api/info";
+// import { common } from "api/common";
 import { global } from "utils/global";
+import { timestampToTime, filterNullVal } from "utils/commonUtils";
 export default {
   name: "infoIndex",
-  components: { DialogAdd },
+  components: { DialogAdd, DialogEdit },
   setup(props, { root }) {
-    const { confirm } = global();
+    // const { getInfoCategory, categoryItem } = common();
+    const { confirm } = global(); //MessageBox提示
     /** data */
-    // 搜索
-    const category_value = ref("");
-    const options = reactive([
-      { value: "1", label: "国际信息" },
-      { value: "2", label: "国内信息" },
-      { value: "3", label: "行业信息" }
-    ]);
-    const date_value = ref("");
-    const search_options = reactive([
-      { value: "id", label: "ID" },
-      { value: "title", label: "标题" }
-    ]);
-    const search_key = ref("ID");
-    const search_keyWord = ref("");
-    // 表格
-    const table_data = reactive([
-      {
-        date: "2016-05-02",
-        user: "王虎",
-        title: "上海",
-        type: "方法"
+    const allData = reactive({
+      // 日期
+      dateValue: "",
+      // 关键字
+      keyWork: {
+        key: "id",
+        value: ""
       },
-      {
-        date: "2016-05-04",
-        user: "王小",
-        title: "上海市",
-        type: "发放"
-      },
-      {
-        date: "2016-05-01",
-        user: "小虎",
-        title: "上海市普陀",
-        type: "更改"
-      },
-      {
-        date: "2016-05-03",
-        user: "王小虎",
-        title: "上海市普陀区金沙",
-        type: "广告"
-      }
-    ]);
-    // 分页
-    const total = ref(12);
-    //新增
-    const dialog_add = ref(false);
+      // 新增
+      dialogAdd: false,
+      // 编辑
+      dialogEdit: false,
+      editRowId: "",
+      // 表格
+      tableData: [],
+      tableLoading: true,
+      // 分页
+      total: 0,
+      // 删除
+      deleteBtnLoading: false,
+      deleteInfoId: []
+    });
+    // 搜索参数
+    const searchData = reactive({
+      categoryId: "",
+      startTiem: "",
+      endTime: "",
+      // id: "",
+      // title: "",
+      pageNumber: 1,
+      pageSize: 10
+    });
+    // select数据
+    const options = reactive({
+      category: [],
+      searchOptions: [
+        { value: "id", label: "ID" },
+        { value: "title", label: "标题" }
+      ]
+    });
+    // watch
+    // watch(
+    //   () => categoryItem.item,
+    //   value => {
+    //     options.category = value;
+    //   }
+    // );
+    /** onMounted */
+    onMounted(() => {
+      // 获取分类
+      root.$store.dispatch("common/getInfoCategory").then(res => {
+        options.category = res;
+      });
+      // 获取列表
+      getList();
+    });
     /** methods */
-    const handleSizeChange = () => {};
-    const handleCurrentChange = () => {};
-    /** 删除 */
-    const deleteItem = () => {
+    /** 搜索 */
+    const submitSearch = () => {
+      // 日期
+      searchData.startTiem = allData.dateValue[0];
+      searchData.endTime = allData.dateValue[1];
+      // 关键字
+      searchData[allData.keyWork.key] = allData.keyWork.value;
+      getList();
+    };
+    /** 获取列表 */
+    const getList = () => {
+      // 过滤参数中空值数据
+      let request = filterNullVal(searchData);
+      GetList(request).then(res => {
+        allData.tableLoading = false;
+        let resData = res.data.data;
+        allData.tableData = resData.data;
+        allData.total = resData.total;
+      });
+    };
+    /** 页条数 */
+    const handleSizeChange = val => {
+      searchData.pageSize = val;
+      getList();
+    };
+    /** 翻页 */
+    const handleCurrentChange = val => {
+      searchData.pageNumber = val;
+      getList();
+    };
+    /** 类型id匹配 */
+    const toCategory = row => {
+      let categoryData = options.category.filter(
+        item => item.id == row.categoryId
+      )[0];
+      if (!categoryData) {
+        return false;
+      }
+      // console.log(categoryData.category_name);
+      return categoryData.category_name;
+    };
+    /** 时间戳转换 */
+    const toDate = row => {
+      return timestampToTime(row.createDate);
+    };
+    /** 编辑 */
+    const editInfo = id => {
+      allData.editRowId = id;
+      allData.dialogEdit = true;
+    };
+    /** 删除单条 */
+    const deleteItem = id => {
+      allData.deleteInfoId = [id];
       confirm({
-        content: "此操作将永久删除该文件, 是否继续?"
+        content: "此操作将永久删除该文件, 是否继续?",
+        fn: deleteInfo
       });
     };
     /** 批量删除 */
     const deleteAll = () => {
+      if (!allData.deleteInfoId || allData.deleteInfoId.length == 0) {
+        root.$message.error("请选择需要删除的数据！");
+        return false;
+      }
       confirm({
         content: "确认删除选择的数据，确认后将无法恢复！",
-        tip: "警告"
+        tip: "警告",
+        fn: deleteInfo
       });
     };
+    /** 删除信息 */
+    const deleteInfo = () => {
+      allData.deleteBtnLoading = true;
+      DeleteInfo({ id: allData.deleteInfoId })
+        .then(res => {
+          allData.deleteBtnLoading = false;
+          allData.deleteInfoId = [];
+          root.$message.success(res.data.message);
+          getList();
+        })
+        .catch(error => {
+          allData.deleteBtnLoading = false;
+        });
+    };
+    /** 多选信息 */
+    const handleSelectionChange = val => {
+      allData.deleteInfoId = val.map(item => item.id);
+    };
+    const keyWorkChange = val => {
+      if (val !== "id" || val !== "title") {
+        allData.keyWork.value = "";
+      }
+    };
     return {
-      //ref
-      category_value,
-      date_value,
-      search_key,
-      search_keyWord,
-      total,
-      dialog_add,
       //reactive
       options,
-      search_options,
-      table_data,
+      allData,
+      searchData,
       //methods
+      submitSearch,
+      getList,
       handleSizeChange,
       handleCurrentChange,
+      toCategory,
+      toDate,
+      editInfo,
       deleteItem,
-      deleteAll
+      deleteAll,
+      handleSelectionChange,
+      keyWorkChange
     };
   }
 };
@@ -246,13 +381,17 @@ export default {
 @import "@/styles/config.scss";
 .label-wrap {
   &.category {
-    @include labelDom(left, 60, 40);
+    @include labelDom(left, 60, 32);
   }
   &.date {
-    @include labelDom(right, 93, 40);
+    @include labelDom(right, 93, 32);
   }
   &.key-word {
-    @include labelDom(right, 99, 40);
+    @include labelDom(right, 99, 32);
   }
+}
+.searchBtn {
+  width: 100%;
+  margin-top: -3px;
 }
 </style>

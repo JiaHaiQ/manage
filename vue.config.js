@@ -51,7 +51,7 @@ module.exports = {
       sass: {
         prependData: `@import "./src/styles/main.scss";`
       }
-    },
+    }
     // 启用 CSS modules for all css / pre-processor files.
     // requireModuleExtension: true
   },

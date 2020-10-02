@@ -1,5 +1,11 @@
 import { Login, Logout } from "api/login";
-import { setToKen, removeToKen, setUserName, getUserName, removeUserName } from "utils/app";
+import {
+  setToKen,
+  removeToKen,
+  setUserName,
+  getUserName,
+  removeUserName
+} from "utils/app";
 
 const state = {
   isCollapse: JSON.parse(sessionStorage.getItem("isCollapse")) || false,
@@ -50,12 +56,11 @@ const actions = {
       Logout().then(res => {
         removeToKen();
         removeUserName();
-        commit('SET_TOKEN', '');
-        commit('SET_USERNAME', '');
+        commit("SET_TOKEN", "");
+        commit("SET_USERNAME", "");
         resolve(res.data);
-      })
-
-    })
+      });
+    });
   }
 };
 
