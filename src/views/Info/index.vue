@@ -146,12 +146,6 @@
             @click="deleteItem(scope.row.id)"
             >删除</el-button
           >
-          <el-button
-            type="primary"
-            icon="el-icon-edit"
-            size="mini"
-            >编辑详情</el-button
-          >
         </template>
       </el-table-column>
     </el-table>
