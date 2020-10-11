@@ -110,6 +110,7 @@ export default {
       refs.editForm.resetFields();
       emit("update:flag", false);
     };
+    /** 获取id详情 */
     const getProps = () => {
       data.editForm.id = props.editRowId;
       let request = {

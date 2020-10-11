@@ -1,5 +1,7 @@
 import { reactive } from "@vue/composition-api";
 import { GetCategory, GetCategoryAll } from "api/info";
+import service from "utils/request";
+/** 获取分类方法 */
 export function common() {
   const categoryItem = reactive({
     item: []
@@ -12,7 +14,7 @@ export function common() {
       .then(response => {
         categoryItem.item = response.data.data.data;
       })
-      .catch(error => {});
+      .catch(error => { });
   };
 
   /**
@@ -23,7 +25,7 @@ export function common() {
       .then(response => {
         categoryItem.item = response.data.data;
       })
-      .catch(error => {});
+      .catch(error => { });
   };
 
   return {
@@ -31,4 +33,22 @@ export function common() {
     getInfoCategoryAll,
     categoryItem
   };
+}
+
+/**
+ * 获取七牛云token
+ * 
+ *  {
+  *  AK: 七牛云的密钥AK；type: string
+  *  SK: 七牛云的密钥AK；type: string
+  *  buckety: 七牛云储存空间名称；type: string
+  * } params 
+  * 
+  */
+export function QiniuToKen(data) {
+  return service.request({
+    method: "post",
+    url: "/uploadImgToken/",
+    data
+  })
 }

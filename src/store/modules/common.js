@@ -1,5 +1,12 @@
 import { GetCategory, GetCategoryAll } from "api/info";
 
+const state = {
+  qiniuUrl: "http://qi0kcm5ac.hn-bkt.clouddn.com/"
+};
+const getters = {
+  qiniuUrl: state => state.qiniuUrl
+};
+const mutations = {};
 const actions = {
   /** 获取分类 */
   getInfoCategory(content, repuestData) {
@@ -29,5 +36,8 @@ const actions = {
 
 export default {
   namespaced: true,
+  state,
+  getters,
+  mutations,
   actions
 };
