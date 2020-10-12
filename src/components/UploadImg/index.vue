@@ -55,7 +55,7 @@ export default {
     };
     /** 文件上成功 */
     const handleAvatarSuccess = (res, file) => {
-      //   let img = `${root.$store.getters["common/qiniuUrl"]}${res.key}`;
+      // let img = `${root.$store.getters["common/qiniuUrl"]}${res.key}`;
       let img = `${process.env.VUE_APP_UPLOADIMG_DATAURL}${res.key}`;
       allData.image = img;
       emit("update:imgUrl", img);
