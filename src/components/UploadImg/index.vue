@@ -14,7 +14,7 @@
   </div>
 </template>
 <script>
-import { reactive, watch, onMounted } from "@vue/composition-api";
+import { reactive, watch, onBeforeMount } from "@vue/composition-api";
 import { QiniuToKen } from "api/commonApi";
 export default {
   name: "uploadImg",
@@ -79,8 +79,8 @@ export default {
         allData.image = value;
       }
     );
-    // onMounted
-    onMounted(() => {
+    // onBeforeMount
+    onBeforeMount(() => {
       getQiniuToKen();
     });
     return {
@@ -118,3 +118,20 @@ export default {
   display: block;
 }
 </style>
+<!--
+说明：
+组件目录位置：src/components/Select/index.vue;
+组件引用方式：import SelectVue from "@c/Select";
+template：<UploadImg :imgUrl.sync="form.imgUrl" :config="uploadImgConfig" />
+
+参数配置：
+（Object）：
+uploadImgConfig = reactive({
+  action: 上传路径,
+  accesskey: 七牛云AK,
+  secretkey: 七牛云SK,
+  buckety: 七牛云BUCKETY(空间名称)
+});
+返回数据：
+imgUrl：图片显示URL
+-->
