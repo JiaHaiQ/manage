@@ -82,7 +82,7 @@ export default {
 <!--
 说明：
 组件目录位置：src/components/UploadImg/index.vue;
-组件引用方式：import UploadImg from "@c/UploadImg";
+组件引用方式：import SelectVue from "@c/Select";;
 template：<SelectVue :config="data.configOption" />
 
 参数（Object）配置：

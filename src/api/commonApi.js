@@ -38,7 +38,7 @@ export function common() {
 /**
  * 获取七牛云token
  * 
- *  {
+ * @param {
   *  AK: 七牛云的密钥AK；type: string
   *  SK: 七牛云的密钥AK；type: string
   *  buckety: 七牛云储存空间名称；type: string
@@ -50,5 +50,15 @@ export function QiniuToKen(data) {
     method: "post",
     url: "/uploadImgToken/",
     data
+  })
+}
+/**
+ * 请求表格数据
+ */
+export function LoadTableData(params) {
+  return service.request({
+    method: params.method || "post",
+    url: params.url,
+    data: params.data || {}
   })
 }
