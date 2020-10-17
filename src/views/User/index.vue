@@ -29,6 +29,7 @@
           type="success"
           icon="el-icon-circle-plus-outline"
           size="small"
+           @click="data.dialogAdd = true"
           >添加用户</el-button
         ></el-col
       >
@@ -56,17 +57,24 @@
         >
       </template>
     </TableVue>
+    <!-- 新增 -->
+    <DialogAdd
+      :flag.sync="data.dialogAdd"
+    />
   </div>
 </template>
 <script>
 import { reactive } from "@vue/composition-api";
 import SelectVue from "@c/Select";
 import TableVue from "@c/Table";
+import DialogAdd from "./dialog/add";
 export default {
   name: "userIndex",
-  components: { SelectVue, TableVue },
+  components: { SelectVue, TableVue, DialogAdd },
   setup(props, { root }) {
     const data = reactive({
+      // 新增
+      dialogAdd: true,
       // 下接菜单的数据
       configOption: {
         init: ["truename", "phone"]
