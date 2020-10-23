@@ -4,7 +4,7 @@
     width="760px"
     :visible.sync="data.dialogAddFlag"
     @opened="openDialogAdd"
-    @close="closeDialogAdd"
+    @close="closeDialog"
   >
     <el-form :model="data.form" :rules="data.rules" ref="addForm">
       <el-form-item
@@ -85,17 +85,14 @@
       </el-form-item>
     </el-form>
     <div slot="footer" class="dialog-footer">
-      <el-button
-        type="danger"
-        icon="el-icon-circle-close"
-        @click="closeDialogAdd"
+      <el-button type="danger" icon="el-icon-circle-close" @click="closeDialog"
         >取 消</el-button
       >
       <el-button
         type="success"
         icon="el-icon-circle-check"
         :loading="data.submitLoading"
-        @click="submitAdd('addForm')"
+        @click="submit('addForm')"
         >确 定</el-button
       >
     </div>
@@ -103,7 +100,7 @@
 </template>
 <script>
 import { reactive, ref, watchEffect } from "@vue/composition-api";
-import { GetRole, UserAdd } from "api/user";
+import { GetRole, UserAdd, UserEdit } from "api/user";
 import { stripscript, validateEmail, validatePass } from "utils/validate";
 import sha1 from "js-sha1";
 // 地图组件
@@ -134,6 +131,7 @@ export default {
     };
     // 验证密码
     let validatePassword = (rule, value, callback) => {
+      // 编辑状态不需要校验
       if (data.form.id && !value) {
         callback();
       }
@@ -191,22 +189,22 @@ export default {
       let editData = props.editData;
       if (editData.id) {
         // 编辑
-        data.dialogTitle = "编辑"
+        data.dialogTitle = "编辑";
         editData.role = editData.role ? editData.role.split(",") : []; // 数组
-        editData.btnPerm = editData.btnPerm ? editData.btnPerm.split(",") : []; // 数组
         // 循环JSON对象
         for (let key in editData) {
           data.form[key] = editData[key];
         }
       } else {
         // 添加
-        data.dialogTitle = "新增"
+        data.dialogTitle = "新增";
         data.form.id && delete data.form.id;
       }
     };
     /** 关闭弹窗 */
-    const closeDialogAdd = () => {
+    const closeDialog = () => {
       data.dialogAddFlag = false;
+      props.editData.id = "";
       resetForm();
       emit("update:flag", false);
     };
@@ -228,8 +226,35 @@ export default {
       //   });
       // }
     };
-    /** 提交添加 */
-    const submitAdd = formName => {
+    /** 添加 */
+    const userAdd = requestData => {
+      UserAdd(requestData)
+        .then(res => {
+          requestSuccess(res);
+        })
+        .catch(error => {
+          data.submitLoading = false;
+        });
+    };
+    /** 编辑 */
+    const userEdit = requestData => {
+      UserEdit(requestData)
+        .then(res => {
+          requestSuccess(res);
+        })
+        .catch(error => {
+          data.submitLoading = false;
+        });
+    };
+    /** 添加 || 编辑成功时执行 */
+    const requestSuccess = res => {
+      data.submitLoading = false;
+      root.$message.success(res.data.message);
+      emit("updateTableData");
+      closeDialog();
+    };
+    /** 提交 */
+    const submit = formName => {
       refs[formName].validate(valid => {
         // 表单验证通过
         if (valid) {
@@ -238,12 +263,19 @@ export default {
           requestData.region = JSON.stringify(data.cityPickerData);
           requestData.password = sha1(requestData.password);
           data.submitLoading = true;
-          UserAdd(requestData).then(res => {
-            data.submitLoading = false;
-            root.$message.success(res.data.message);
-            emit("updateTableData");
-            closeDialogAdd();
-          });
+          if (requestData.id) {
+            // 编辑
+            if (requestData.password) {
+              requestData.password = sha1(requestData.password);
+            } else {
+              delete requestData.password;
+            }
+            userEdit(requestData);
+          } else {
+            // 添加
+            requestData.password = sha1(requestData.password);
+            userAdd(requestData);
+          }
         } else {
           return false;
         }
@@ -254,8 +286,8 @@ export default {
       data,
       // methods
       openDialogAdd,
-      closeDialogAdd,
-      submitAdd
+      closeDialog,
+      submit
     };
   }
 };

@@ -155,6 +155,16 @@ export default {
     const refreshData = () => {
       loadTableData(data.tableConfig.requestData);
     };
+    /** 带参数刷新数据 */ 
+    const paramsLoadData = params => {
+      let requestData = Object.assign({}, params, {
+        pageNumber: 1,
+        pageSize: 10
+      });
+      data.tableConfig.requestData.data = requestData;
+      console.log(data.tableConfig.requestData.data);
+      loadTableData(data.tableConfig.requestData);
+    };
     onBeforeMount(() => {
       initPropsValue();
       loadTableData(data.tableConfig.requestData);
@@ -165,7 +175,8 @@ export default {
       handleSizeChange,
       handleCurrentChange,
       thatSelectCheckbox,
-      refreshData
+      refreshData,
+      paramsLoadData
     };
   }
 };
@@ -192,9 +203,18 @@ configTable: {
   // selection: false,
   //表头array
   tHead: [
-    { label: "表头", rowKey: "显示字段", width: 行宽 }
-  ]
+    { label: "表头", rowKey: "显示字段", width: 行宽 }，
+    { label: "操作", columnType: "slot", slotName: "operation" }// 插槽
+  ],
+  // 请求参数
+  requestData: {
+    url: "getUserList",
+    data: {
+      pageNumber: 1,
+      pageSize: 10
+    }
+  }
 }
-返回数据：
+返回数据：tableRow(勾选项数据)
 
 -->

@@ -83,7 +83,7 @@ export default {
 说明：
 组件目录位置：src/components/UploadImg/index.vue;
 组件引用方式：import SelectVue from "@c/Select";;
-template：<SelectVue :config="data.configOption" />
+template：<SelectVue :config="data.configOption" :selectData.sync="data.selectData" />
 
 参数（Object）配置：
 configOption: {
@@ -92,6 +92,6 @@ configOption: {
 init：
     数据类型: Array; 
     可配置的数据："name", "phone", "email", "id", "title"
-返回数据：
+返回数据：selectData // 字段
 
 -->

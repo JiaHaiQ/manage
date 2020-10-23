@@ -12,10 +12,19 @@
                   :selectData.sync="data.selectData"
               /></el-col>
               <el-col :span="8"
-                ><el-input placeholder="请输入关键字"></el-input
+                ><el-input
+                  v-model="data.searchWord"
+                  :type="data.searchInputType"
+                  placeholder="请输入关键字"
+                  clearable
+                ></el-input
               ></el-col>
               <el-col :span="9"
-                ><el-button type="primary" icon="el-icon-search" size="small"
+                ><el-button
+                  type="primary"
+                  icon="el-icon-search"
+                  size="small"
+                  @click="search"
                   >搜索</el-button
                 ></el-col
               >
@@ -44,7 +53,7 @@
       <!-- 插槽 -->
       <template v-slot:status="slotData">
         <el-switch
-          :disabled="data.updateUserStatusDisabled"
+          :disabled="slotData.data.id === data.userStatusId"
           @change="handlerSwitch(slotData.data)"
           v-model="slotData.data.status"
           active-value="2"
@@ -80,11 +89,15 @@
       </template>
     </TableVue>
     <!-- 新增 -->
-    <UserDialog :flag.sync="data.dialogAdd" :editData="data.editData" @updateTableData="updateTableData" />
+    <UserDialog
+      :flag.sync="data.dialogAdd"
+      :editData="data.editData"
+      @updateTableData="updateTableData"
+    />
   </div>
 </template>
 <script>
-import { reactive } from "@vue/composition-api";
+import { reactive, watch } from "@vue/composition-api";
 import { UserDel, UserActives } from "api/user";
 import { global } from "utils/global";
 import SelectVue from "@c/Select";
@@ -96,12 +109,16 @@ export default {
   setup(props, { root, refs }) {
     const { confirm } = global(); //MessageBox提示
     const data = reactive({
+      // 搜索
+      searchWord: "",
+      searchInputType: "text",
       // 新增
       dialogAdd: false,
       // 编辑
       dialogEdit: false,
       editData: {},
       // disabled
+      userStatusId: "",
       updateUserStatusDisabled: false,
       // 下接菜单的数据
       configOption: {
@@ -145,7 +162,27 @@ export default {
         }
       }
     });
+    watch(
+      () => data.selectData,
+      selectKey => {
+        data.searchWord = "";
+        data.searchInputType = "";
+        if (selectKey.value === "phone") {
+          data.searchInputType = "number";
+        }
+      }
+    );
     // methods
+    /** 搜索 */
+    const search = () => {
+      if (data.selectData.value === "phone") {
+        data.searchWord = Number(data.searchWord);
+      }
+      let requesttData = {
+        [data.selectData.value]: data.searchWord
+      };
+      refs.userTable.paramsLoadData(requesttData);
+    };
     // 删除单条
     const deleteItem = params => {
       data.tableRow.idItem = [params.id];
@@ -183,17 +220,14 @@ export default {
      * 修改用户禁启用状态
      */
     const handlerSwitch = params => {
-      if (data.updateUserStatusDisabled) {
-        return false;
-      }
-      data.updateUserStatusDisabled = true;
+      data.userStatusId = params.id;
       UserActives({ id: params.id, status: params.status })
         .then(res => {
           root.$message.success(res.data.message);
-          data.updateUserStatusDisabled = false;
+          data.userStatusId = "";
         })
         .catch(error => {
-          data.updateUserStatusDisabled = false;
+          data.userStatusId = "";
         });
     };
     /** 编辑 */
@@ -204,6 +238,8 @@ export default {
     };
     return {
       data,
+      // methods
+      search,
       deleteItem,
       deleteAll,
       deleteUser,

@@ -11,7 +11,7 @@ export function GetRole(data = {}) {
 }
 
 /**
- * 添加
+ * 添加用户
 {
 username：用户名（string）*
 truename：真实姓名（string）
@@ -26,6 +26,27 @@ export function UserAdd(data = {}) {
     return service.request({
         method: "post",
         url: "/user/add/",
+        data
+    })
+}
+/**
+ * 编辑用户	
+{
+id：用户ID（number）*
+username：用户名（string）*
+truename：真实姓名（string）
+password：密码（string） 非必传项
+phone：手机号（number）
+region：地区（json）
+status：禁启用状态（string）*
+role：角色类型（string）*
+btnPerm：按钮权限（string）*
+}
+ */
+export function UserEdit(data){
+    return service.request({
+        method: "post",
+        url: "/user/edit/",
         data
     })
 }
