@@ -216,9 +216,7 @@ export default {
     const updateTableData = () => {
       refs.userTable.refreshData();
     };
-    /**
-     * 修改用户禁启用状态
-     */
+    /** 修改用户禁启用状态 */
     const handlerSwitch = params => {
       data.userStatusId = params.id;
       UserActives({ id: params.id, status: params.status })
