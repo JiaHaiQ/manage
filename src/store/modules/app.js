@@ -50,7 +50,7 @@ const actions = {
         });
     });
   },
-  // 退出
+  // 退出 
   logout({ commit }) {
     return new Promise((resolve, reject) => {
       Logout().then(res => {
